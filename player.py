@@ -22,22 +22,29 @@ class Player(pygame.sprite.Sprite):
 
 		self.animations = {}
 		self.frame_count = 8
-		self.scale_factor = 2  
+		self.scale_factor = 2
+
 		for direction, sheet in self.sprite_sheets.items():
 			frames = []
+
 			frame_width = sheet.get_width() // self.frame_count
+
 			frame_height = sheet.get_height()
+
 			for i in range(self.frame_count):
+
 				frame = sheet.subsurface((i * frame_width, 0, frame_width, frame_height))
+
 				scaled_frame = pygame.transform.scale(frame,
 					(frame_width * self.scale_factor, frame_height * self.scale_factor))
+
 				frames.append(scaled_frame)
+
 			self.animations[direction] = frames
 
-		# Controle de animação
 		self.current_direction = 'down'
 		self.frame_index = 0
-		self.animation_speed = 10  # Frames por segundo da animação
+		self.animation_speed = 10 
 		self.animation_timer = 0
 
 		self.image = self.animations[self.current_direction][self.frame_index]
@@ -46,6 +53,11 @@ class Player(pygame.sprite.Sprite):
 		self.pos = pygame.math.Vector2(self.rect.center)
 		self.direction = pygame.math.Vector2(0, 0)
 		self.speed = 200
+
+		self.health = 3 
+		self.invulnerable = False 
+		self.invulnerable_timer = 0 
+		self.invulnerable_duration = 1.0  
 
 
 	def input(self):
@@ -113,10 +125,34 @@ class Player(pygame.sprite.Sprite):
 		self.rect.centery = round(self.pos.y)
 
 
+	def take_damage(self):
+		"""
+		Aplica dano ao jogador quando colide com um obstáculo.
+		Só recebe dano se não estiver invulnerável.
+		"""
+		if not self.invulnerable:
+			self.health -= 1
+			print(f" Vida restante: {self.health}")
+
+			self.invulnerable = True
+			self.invulnerable_timer = 0
+
+		
+			if self.health <= 0:
+				print("  VOCÊ MORREU!")
+				return True  
+		return False
+
 	def update(self, dt):
 		"""Método chamado a cada frame"""
 		self.input()
 		self.update_sprite(dt)
-		self.move(dt)     
+		self.move(dt)
+
+		if self.invulnerable:
+			self.invulnerable_timer += dt
+			if self.invulnerable_timer >= self.invulnerable_duration:
+				self.invulnerable = False
+				self.invulnerable_timer = 0     
 
 
